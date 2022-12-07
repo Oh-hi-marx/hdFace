@@ -1,0 +1,13 @@
+*.mp4
+/downloads/*
+/inputs/*
+/outputs/*
+/segmentLabels/*
+/temp/*
+labels.txt
+/tool/__pycache__/*
+*.pyc
+/extractedFrames/*
+/codeformer/inputs/*
+/codeformer/results/*
+/downloads/*
