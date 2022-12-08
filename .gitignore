@@ -11,3 +11,4 @@ labels.txt
 /codeformer/inputs/*
 /codeformer/results/*
 /downloads/*
+*pth

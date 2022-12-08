@@ -42,4 +42,3 @@ def extractFrames(inpath, outpath, resolution = (1080,1920), letterBox =0):
 	  else:
       		break
 	cap.release()
-	cv2.destroyAllWindows()
