@@ -10,15 +10,19 @@ import glob
 def pad(path):
     files =glob.glob(path+"*.png")
     for jpg in files:
-        name = jpg.split("\\")[-1].zfill(11)
-        root = jpg.split("final_results\\")[0]
 
+        name = jpg.split("\\")[-1].split("/")[-1].zfill(11)
+        root = jpg.split("final_results")[0]
         os.rename(jpg,root+"final_results/"+name)
 
 
 
 
 def render():
+    try:
+        os.mkdir("outputs")
+    except:
+        pass
     codeformerResults = onlyfolders("./codeformer/results/")
     print("found codeformer results: ",codeformerResults)
     originalVideos = onlyfiles("./downloads")
@@ -48,7 +52,8 @@ def render():
         framerate = my_clip.fps
         print(framerate)
         pad(folder.replace("./","")+ "/final_results/")
-        command = "ffmpeg -framerate "+ str(framerate)+" -thread_queue_size 512 -i "+ folder.replace("./","")+ "/final_results/%07d.png outputs/"+originalVideoName+".mp4 -i extractedAudio/"+originalVideoName+".wav"
+        cwd = os.getcwd()
+        command = "ffmpeg -framerate "+ str(framerate)+" -thread_queue_size 512 -i "+ folder.replace("./","")+ "/final_results/%07d.png "+cwd+"/outputs/"+originalVideoName+".mp4 -i " +cwd+"/extractedAudio/"+originalVideoName+".wav"
         print(command)
         os.system(command)
 if __name__ == '__main__':
