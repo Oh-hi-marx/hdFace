@@ -3,7 +3,7 @@ import os
 
 from tool.files import *
 from tool.videos import *
-def runCodeformer(weight):
+def runCodeformer(weight, background =0):
     inputPath = "./extractedFrames"
 
 
@@ -12,7 +12,10 @@ def runCodeformer(weight):
     wd= os.getcwd()
     os.chdir("codeformer")
     for video in videos:
-        command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + " --input_path ."  +video
+        if(background==0):
+        	command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + " --input_path ."  +video
+        else:
+            command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + " --input_path ."  +video + " --bg_upsampler realesrgan "
         print(command)
         os.system(command)
     os.chdir(wd)

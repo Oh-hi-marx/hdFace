@@ -12,3 +12,4 @@ labels.txt
 /codeformer/results/*
 /downloads/*
 *pth
+/extractedAudio/*

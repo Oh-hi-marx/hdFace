@@ -1,5 +1,7 @@
 import os
+from hdFace import runCodeformer
+from render import render
 
 os.system("python extractFrames.py")
-os.system("python hdFace.py")
-os.system("python render.py")
+runCodeformer(0.8,0)
+render()

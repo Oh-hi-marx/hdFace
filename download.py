@@ -22,11 +22,13 @@ print(urls)
 print("Found %i urls" %len(urls))
 
 currentDir = os.getcwd()
+os.chdir("downloads")
 for url in urls:
-	command = "yt-dlp -o " + "downloads/%(id)s.%(ext)s"  +' ' + url
+	
+	command = 'yt-dlp -o "%(id)s.%(ext)s"'  +' ' + url
 	print(command)
 	print("\nDownloading ", url)
 	os.system(command)
 	print("=============")
-
+os.chdir(currentDir)
 os.system("python main.py")
