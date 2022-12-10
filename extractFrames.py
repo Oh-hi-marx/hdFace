@@ -26,18 +26,34 @@ if __name__ == '__main__':
         os.mkdir(outputPath)
     except:
         pass
-    files = onlyfiles(inputPath)
-
-    y = Value('i', 0)
-
-    for i in tqdm(range(len(files)), desc=f'Extracting frames'):
-        while(1):
-            if(y.value < numThreads):
-                y.value += 1
-                file = files.pop()
-                p = Process(target=extractVideoFrames, args=(file, outputPath, y,))
-                p.start()
-                processes.append(p)
-                break
-    for p in processes:
-        p.join()
+    ################## skip already extracted
+    filesToExtract = onlyfiles(inputPath)
+    alreadyExtractedRaw = onlyfolders("extractedFrames")
+    alreadyExtracted = []
+    for f in alreadyExtractedRaw:
+        alreadyExtracted.append(f.split("extractedFrames/")[-1])
+    files =[]
+    skip =[]
+    for f in filesToExtract:
+        name = f.split(os.sep)[-1].split(".")[0]
+        print(name, alreadyExtracted)
+        if(name not in alreadyExtracted):
+            files.append(f)
+        else:
+            skip.append(f)
+    print("to extract: ",files)
+    print("skipping already extract: ", skip)
+    ##########################################
+    if(len(files)>0):
+        y = Value('i', 0)
+        for i in tqdm(range(len(files)), desc=f'Extracting frames'):
+            while(1):
+                if(y.value < numThreads):
+                    y.value += 1
+                    file = files.pop()
+                    p = Process(target=extractVideoFrames, args=(file, outputPath, y,))
+                    p.start()
+                    processes.append(p)
+                    break
+        for p in processes:
+            p.join()
