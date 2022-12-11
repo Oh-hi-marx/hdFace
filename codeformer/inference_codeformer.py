@@ -9,13 +9,27 @@ from basicsr.utils.download_util import load_file_from_url
 from facelib.utils.face_restoration_helper import FaceRestoreHelper
 from facelib.utils.misc import is_gray
 import torch.nn.functional as F
-
+from os.path import isfile, join
+from os import listdir
 from basicsr.utils.registry import ARCH_REGISTRY
+import re
 
 pretrain_model_url = {
     'restoration': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth',
 }
+def natSort(l):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
 
+def onlyfolders(mypath):
+	folders = next(os.walk(mypath))[1]
+	for i,folder in enumerate(folders):
+		folders[i] = join(mypath,folder)
+	return folders
+def onlyfiles(mypath):
+	onlyfiles = [join(mypath,f) for f in listdir(mypath) if isfile(join(mypath, f))]
+	return onlyfiles
 def set_realesrgan():
     from basicsr.archs.rrdbnet_arch import RRDBNet
     from basicsr.utils.realesrgan_utils import RealESRGANer
@@ -50,22 +64,24 @@ def set_realesrgan():
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
+    #torch.backends.cudnn.enabled =False,
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', '--input_path', type=str, default='./inputs/whole_imgs', 
+    parser.add_argument('-i', '--input_path', type=str, default='./inputs/whole_imgs',
             help='Input image, video or folder. Default: inputs/whole_imgs')
-    parser.add_argument('-o', '--output_path', type=str, default=None, 
+    parser.add_argument('-o', '--output_path', type=str, default=None,
             help='Output folder. Default: results/<input_name>_<w>')
-    parser.add_argument('-w', '--fidelity_weight', type=float, default=0.5, 
+    parser.add_argument('-w', '--fidelity_weight', type=float, default=0.5,
             help='Balance the quality and fidelity. Default: 0.5')
-    parser.add_argument('-s', '--upscale', type=int, default=2, 
+    parser.add_argument('-s', '--upscale', type=int, default=2,
             help='The final upsampling scale of the image. Default: 2')
     parser.add_argument('--has_aligned', action='store_true', help='Input are cropped and aligned faces. Default: False')
     parser.add_argument('--only_center_face', action='store_true', help='Only restore the center face. Default: False')
     parser.add_argument('--draw_box', action='store_true', help='Draw the bounding box for the detected faces. Default: False')
     # large det_model: 'YOLOv5l', 'retinaface_resnet50'
     # small det_model: 'YOLOv5n', 'retinaface_mobile0.25'
-    parser.add_argument('--detection_model', type=str, default='retinaface_resnet50', 
+    parser.add_argument('--detection_model', type=str, default='retinaface_resnet50',
             help='Face detector. Optional: retinaface_resnet50, retinaface_mobile0.25, YOLOv5l, YOLOv5n. \
                 Default: retinaface_resnet50')
     parser.add_argument('--bg_upsampler', type=str, default='None', help='Background upsampler. Optional: realesrgan')
@@ -96,8 +112,33 @@ if __name__ == '__main__':
         if args.input_path.endswith('/'):  # solve when path ends with /
             args.input_path = args.input_path[:-1]
         # scan all the jpg and png images
-        input_img_list = sorted(glob.glob(os.path.join(args.input_path, '*.[jp][pn]g')))
+        input_img_list_raw = natSort(glob.glob(os.path.join(args.input_path, '*.[jp][pn]g')))
+        result_folder_list = onlyfolders("./results")
+        inputFolder = args.input_path.split("extractedFrames"+os.sep)[-1]
+        for i in result_folder_list:
+            resultFolder = i.split("results"+os.sep)[-1].rsplit("_",1)[0]
+            if(resultFolder==inputFolder):
+                if(i[0]=="."):
+                    i= i[1:]
+                i = os.getcwd() + i + os.sep + "final_results"
+
+                resultFiles = natSort(onlyfiles(i))
+        input_img_list =[]
+        resultNumbers =[]
+        skip=0
+        for i in resultFiles:
+            number = i.split(os.sep)[-1].split(".png")[0].split(".jpg")[0]
+            resultNumbers.append(number)
+        for i in input_img_list_raw:
+            inputNumber = i.split(os.sep)[-1].split(".jpg")[0].split(".png")[0]
+            if(inputNumber not in resultNumbers):
+                input_img_list.append(i)
+            else:
+                skip+=1
+
+        print("input images: ", args.input_path,len(input_img_list)," Skipping: ", skip)
         result_root = f'results/{os.path.basename(args.input_path)}_{w}'
+
 
     if not args.output_path is None: # set output path
         result_root = args.output_path
@@ -120,11 +161,11 @@ if __name__ == '__main__':
         face_upsampler = None
 
     # ------------------ set up CodeFormer restorer -------------------
-    net = ARCH_REGISTRY.get('CodeFormer')(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9, 
+    net = ARCH_REGISTRY.get('CodeFormer')(dim_embd=512, codebook_size=1024, n_head=8, n_layers=9,
                                             connect_list=['32', '64', '128', '256']).to(device)
-    
+
     # ckpt_path = 'weights/CodeFormer/codeformer.pth'
-    ckpt_path = load_file_from_url(url=pretrain_model_url['restoration'], 
+    ckpt_path = load_file_from_url(url=pretrain_model_url['restoration'],
                                     model_dir='weights/CodeFormer', progress=True, file_name=None)
     checkpoint = torch.load(ckpt_path)['params_ema']
     net.load_state_dict(checkpoint)
@@ -133,9 +174,9 @@ if __name__ == '__main__':
     # ------------------ set up FaceRestoreHelper -------------------
     # large det_model: 'YOLOv5l', 'retinaface_resnet50'
     # small det_model: 'YOLOv5n', 'retinaface_mobile0.25'
-    if not args.has_aligned: 
+    if not args.has_aligned:
         print(f'Face detection model: {args.detection_model}')
-    if bg_upsampler is not None: 
+    if bg_upsampler is not None:
         print(f'Background upsampling: True, Face upsampling: {args.face_upsample}')
     else:
         print(f'Background upsampling: False, Face upsampling: {args.face_upsample}')
@@ -153,7 +194,7 @@ if __name__ == '__main__':
     for i, img_path in enumerate(input_img_list):
         # clean all the intermediate results to process the next image
         face_helper.clean_all()
-        
+
         if isinstance(img_path, str):
             img_name = os.path.basename(img_path)
             basename, ext = os.path.splitext(img_name)
@@ -165,7 +206,7 @@ if __name__ == '__main__':
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = img_path
 
-        if args.has_aligned: 
+        if args.has_aligned:
             # the input faces are already cropped and aligned
             img = cv2.resize(img, (512, 512), interpolation=cv2.INTER_LINEAR)
             face_helper.is_gray = is_gray(img, threshold=5)
@@ -211,7 +252,7 @@ if __name__ == '__main__':
                 bg_img = None
             face_helper.get_inverse_affine(None)
             # paste each restored face to the input image
-            if args.face_upsample and face_upsampler is not None: 
+            if args.face_upsample and face_upsampler is not None:
                 restored_img = face_helper.paste_faces_to_input_image(upsample_img=bg_img, draw_box=args.draw_box, face_upsampler=face_upsampler)
             else:
                 restored_img = face_helper.paste_faces_to_input_image(upsample_img=bg_img, draw_box=args.draw_box)
@@ -219,7 +260,7 @@ if __name__ == '__main__':
         # save faces
         for idx, (cropped_face, restored_face) in enumerate(zip(face_helper.cropped_faces, face_helper.restored_faces)):
             # save cropped face
-            if not args.has_aligned: 
+            if not args.has_aligned:
                 save_crop_path = os.path.join(result_root, 'cropped_faces', f'{basename}_{idx:02d}.png')
                 imwrite(cropped_face, save_crop_path)
             # save restored face
@@ -253,7 +294,7 @@ if __name__ == '__main__':
             video_name = f'{video_name}_{args.suffix}.png'
         save_restore_path = os.path.join(result_root, f'{video_name}.mp4')
         writer = cv2.VideoWriter(save_restore_path, cv2.VideoWriter_fourcc(*"mp4v"),
-                                    args.save_video_fps, (w, h))            
+                                    args.save_video_fps, (w, h))
         for f in video_frames:
             writer.write(f)
         writer.release()
