@@ -115,6 +115,7 @@ if __name__ == '__main__':
         input_img_list_raw = natSort(glob.glob(os.path.join(args.input_path, '*.[jp][pn]g')))
         result_folder_list = onlyfolders("./results")
         inputFolder = args.input_path.split("extractedFrames"+os.sep)[-1]
+        resultFiles = [] 
         for i in result_folder_list:
             resultFolder = i.split("results"+os.sep)[-1].rsplit("_",1)[0]
             if(resultFolder==inputFolder):
