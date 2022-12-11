@@ -27,17 +27,15 @@ def render():
     print("found codeformer results: ",codeformerResults)
     originalVideos = onlyfiles("./downloads")
     for folder in codeformerResults:
-        originalVideoSplit = folder.split("/")[-1].split("_")
-        originalVideoName =""
-        for i in range(len(originalVideoSplit)-1):
-            originalVideoName+=originalVideoSplit[i]
-
+        originalVideoSplit = folder.split("/")[-1]
+        
+        originalVideoName = originalVideoSplit.rsplit("_",1)[0]
 
         for j in originalVideos:
-            print(Path(j).stem,originalVideoName)
+            print(Path(j).stem.split(".")[0] ,originalVideoName)
             if(Path(j).stem.split(".")[0] == originalVideoName):
                 originalVideo=  j
-
+	
         print(originalVideo)
 
         my_clip = mp.VideoFileClip(originalVideo)
