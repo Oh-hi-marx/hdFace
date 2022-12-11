@@ -126,15 +126,18 @@ if __name__ == '__main__':
         input_img_list =[]
         resultNumbers =[]
         skip=0
-        for i in resultFiles:
-            number = i.split(os.sep)[-1].split(".png")[0].split(".jpg")[0]
-            resultNumbers.append(number)
-        for i in input_img_list_raw:
-            inputNumber = i.split(os.sep)[-1].split(".jpg")[0].split(".png")[0]
-            if(inputNumber not in resultNumbers):
-                input_img_list.append(i)
-            else:
-                skip+=1
+        if(len(resultFiles)>0 and len(resultFiles) != len(input_img_list_raw)):
+            for i in resultFiles:
+                number = i.split(os.sep)[-1].split(".png")[0].split(".jpg")[0]
+                resultNumbers.append(number)
+            for i in input_img_list_raw:
+                inputNumber = i.split(os.sep)[-1].split(".jpg")[0].split(".png")[0]
+                if(inputNumber not in resultNumbers):
+                    input_img_list.append(i)
+                else:
+                    skip+=1
+        else:
+            skip  = -1
 
         print("input images: ", args.input_path,len(input_img_list)," Skipping: ", skip)
         result_root = f'results/{os.path.basename(args.input_path)}_{w}'
