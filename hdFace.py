@@ -11,6 +11,10 @@ def runCodeformer(weight, background =0, overwrite = 0 ):
     print("Found input videos: ",videosRaw)
     #########################################################
     if(overwrite==0):
+        try:
+            os.mkdir("./codeformer/results")
+        except:
+            pass
         codeformerResults = onlyfolders("./codeformer/results/")
         originalVideos = onlyfiles("./downloads")
         originalVideosFiltered = []
