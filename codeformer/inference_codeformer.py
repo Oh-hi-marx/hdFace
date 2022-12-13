@@ -138,6 +138,7 @@ if __name__ == '__main__':
                 else:
                     skip+=1
         else:
+            input_img_list= input_img_list_raw
             skip  = -1
 
         print("input images: ", args.input_path,len(input_img_list)," Skipping: ", skip)
