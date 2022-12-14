@@ -51,7 +51,7 @@ def render():
         print(framerate)
         pad(folder.replace("./","")+ "/final_results/")
         cwd = os.getcwd()
-        command = "ffmpeg -framerate "+ str(framerate)+" -thread_queue_size 512 -i "+ folder.replace("./","")+ "/final_results/%07d.png "+cwd+"/outputs/"+originalVideoName+".mp4 -i " +cwd+"/extractedAudio/"+originalVideoName+".wav"
+        command = "ffmpeg -framerate "+ str(framerate)+' -thread_queue_size 512 -i "'+ folder.replace("./","")+ '/final_results/%07d.png" "'+cwd+'/outputs/'+originalVideoName+'.mp4" -i "' +cwd+"/extractedAudio/"+originalVideoName+'.wav"'
         print(command)
         os.system(command)
 if __name__ == '__main__':
