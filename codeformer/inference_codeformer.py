@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from os.path import isfile, join
 from os import listdir
 from basicsr.utils.registry import ARCH_REGISTRY
+from os.path import isfile, join
 import re
 
 pretrain_model_url = {
@@ -27,6 +28,9 @@ def onlyfolders(mypath):
 	for i,folder in enumerate(folders):
 		folders[i] = join(mypath,folder)
 	return folders
+def onlyfiles(mypath):
+	onlyfiles = [join(mypath,f) for f in listdir(mypath) if isfile(join(mypath, f))]
+	return onlyfiles
 def onlyfiles(mypath):
 	onlyfiles = [join(mypath,f) for f in listdir(mypath) if isfile(join(mypath, f))]
 	return onlyfiles
@@ -112,10 +116,15 @@ if __name__ == '__main__':
         if args.input_path.endswith('/'):  # solve when path ends with /
             args.input_path = args.input_path[:-1]
         # scan all the jpg and png images
-        input_img_list_raw = natSort(glob.glob(os.path.join(args.input_path, '*.[jp][pn]g')))
+        inputList=onlyfiles(args.input_path)
+        input_img_list_raw= []
+        for i in inputList:
+            if(".jpg" in i or ".png" in i):
+                input_img_list_raw.append(i)
+        input_img_list_raw = natSort(input_img_list_raw)
         result_folder_list = onlyfolders("./results")
         inputFolder = args.input_path.split("extractedFrames"+os.sep)[-1]
-        resultFiles = [] 
+        resultFiles = []
         for i in result_folder_list:
             resultFolder = i.split("results"+os.sep)[-1].rsplit("_",1)[0]
             if(resultFolder==inputFolder):
@@ -139,6 +148,7 @@ if __name__ == '__main__':
                     skip+=1
         else:
             skip  = -1
+            input_img_list = input_img_list_raw
 
         print("input images: ", args.input_path,len(input_img_list)," Skipping: ", skip)
         result_root = f'results/{os.path.basename(args.input_path)}_{w}'
@@ -205,7 +215,7 @@ if __name__ == '__main__':
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         else: # for video processing
-            basename = str(i).zfill(6)
+            basename = str(i).zfill(10)
             img_name = f'{video_name}_{basename}' if input_video else basename
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = img_path
