@@ -5,6 +5,7 @@ from tqdm.auto import tqdm
 from tool.files import *
 from tool.videos import *
 
+
 inputPath = "./downloads"
 outputPath = "extractedFrames"
 numThreads = 16
@@ -19,13 +20,22 @@ def extractVideoFrames(file, outputPath, y):
         pass
     extractFrames(file, outDir, resolution=(1080, 1920), letterBox=1)
     y.value -= 1
-
+def remove_non_ascii(string):
+    return ''.join(char for char in string if ord(char) < 128)
 
 if __name__ == '__main__':
     try:
         os.mkdir(outputPath)
     except:
         pass
+    ########################## remove non english #########
+    filesToExtract = onlyfiles(inputPath)
+
+    for file in filesToExtract:
+        print(file)
+        result = re.sub(r'[^\x00-\x7f]',r'', file)
+        os.rename(file,result)
+
     ################## skip already extracted
     filesToExtract = onlyfiles(inputPath)
     alreadyExtractedRaw = onlyfolders("extractedFrames")

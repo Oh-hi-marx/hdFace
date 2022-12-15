@@ -11,6 +11,10 @@ def runCodeformer(weight, background =0, overwrite = 0 ):
     print("Found input videos: ",videosRaw)
     #########################################################
     if(overwrite==0):
+        try:
+            os.mkdir("./codeformer/results")
+        except:
+            pass
         codeformerResults = onlyfolders("./codeformer/results/")
         originalVideos = onlyfiles("./downloads")
         originalVideosFiltered = []
@@ -36,13 +40,13 @@ def runCodeformer(weight, background =0, overwrite = 0 ):
     os.chdir("codeformer")
     for video in videos:
         if(background==0):
-        	command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + " --input_path '."  +video+"'"
+        	command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + ' --input_path ".'  +video+'"'
         else:
-            command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + " --input_path '."  +video + "' --bg_upsampler realesrgan "
+            command = "python inference_codeformer.py --face_upsample -w "+ str(weight) + ' --input_path ".'  +video + '" --bg_upsampler realesrgan'
         print(command)
         os.system(command)
     os.chdir(wd)
 
 if __name__ == '__main__':
-    w= 1
-    runCodeformer(w, background = 0, overwrite = 1)
+    w= 0.8
+    runCodeformer(w, background = 1, overwrite = 1)

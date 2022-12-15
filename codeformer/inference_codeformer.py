@@ -147,6 +147,7 @@ if __name__ == '__main__':
                 else:
                     skip+=1
         else:
+            input_img_list= input_img_list_raw
             skip  = -1
             input_img_list = input_img_list_raw
 
