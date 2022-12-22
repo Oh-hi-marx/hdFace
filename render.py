@@ -23,6 +23,10 @@ def render():
         os.mkdir("outputs")
     except:
         pass
+    try:
+        os.mkdir("extractedAudio")
+    except:
+        pass
     codeformerResults = onlyfolders("./codeformer/results/")
     print("found codeformer results: ",codeformerResults)
     originalVideos = onlyfiles("./downloads")
